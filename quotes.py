@@ -3,9 +3,6 @@
 import requests
 import json 
 
-global symbols
-symbols = []
-
 
 # get the api key from the the required tdinfo.json file. 
 def get_user_specific_api_key():
@@ -19,9 +16,9 @@ def get_user_specific_api_key():
             tdinfo = json.load(f)
             
             encoded_apikey = tdinfo["encoded_apikey"]
-            
+
     else:
-        print("Could not get api key")
+        print("Could not get api key. Required file 'tdinfo.json not found")
         
         encoded_apikey = "None"
  
@@ -31,7 +28,7 @@ def get_user_specific_api_key():
 # get the position information from positions file 
 def make_symbols_list(): 
 
-    global symbols 
+    symbol_list = []
 
     positions_file = "positions.json"
 
@@ -42,11 +39,12 @@ def make_symbols_list():
             positions = json.load(p)
             
             for item in positions: 
-                
-                symbols.append(positions[item]["symbol"])
-            
+      
+                symbol_list.append(positions[item]["symbol"])     
     else:
-        print("Could not get positions")   
+        print("Required file 'positions.json' not found.") 
+        
+    return(symbol_list)   
 
 
 
@@ -132,14 +130,14 @@ def get_ytd_return(ticker,key) :
 
 ''' main '''
 
-key = get_user_specific_api_key() 
+api_key = get_user_specific_api_key() 
 
-make_symbols_list() 
+symbol_list = make_symbols_list() 
 
 print "Getting quotes..."
 print 
 print "Symbol  YTD Return"
 
-for item in symbols: 
-    get_ytd_return(item, key)
+for item in symbol_list: 
+    get_ytd_return(item, api_key)
   
