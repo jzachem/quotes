@@ -1,0 +1,18 @@
+{
+    "AMZN":
+    {
+        "symbol": "AMZN",
+        "share_count": "37"
+    },
+    "GOOG":
+    {
+        "symbol": "GOOG",
+        "share_count": "20"
+    }, 
+
+    "MSFT":
+    {
+        "symbol": "MSFT",
+        "share_count": "300"
+    }
+}
