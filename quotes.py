@@ -19,7 +19,7 @@ def get_user_specific_api_key():
             tdinfo = json.load(f)
             
             encoded_apikey = tdinfo["encoded_apikey"]
-            print encoded_apikey
+            
     else:
         print("Could not get api key")
         
