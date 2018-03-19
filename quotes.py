@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import requests
 import json 
 
@@ -9,7 +10,9 @@ def get_user_specific_api_key():
 
     filename = "tdinfo.json"
 
-    if filename: 
+    encoded_apikey = "None"
+
+    if os.path.isfile(filename): 
         
         with open(filename,'r') as f:
 
@@ -17,11 +20,6 @@ def get_user_specific_api_key():
             
             encoded_apikey = tdinfo["encoded_apikey"]
 
-    else:
-        print("Could not get api key. Required file 'tdinfo.json not found")
-        
-        encoded_apikey = "None"
- 
     return(encoded_apikey)
 
 
@@ -32,7 +30,7 @@ def make_symbols_list():
 
     positions_file = "positions.json"
 
-    if positions_file: 
+    if os.path.isfile(positions_file): 
         
         with open(positions_file,'r') as p:
             
@@ -41,8 +39,7 @@ def make_symbols_list():
             for item in positions: 
       
                 symbol_list.append(positions[item]["symbol"])     
-    else:
-        print("Required file 'positions.json' not found.") 
+         
         
     return(symbol_list)   
 
@@ -130,9 +127,16 @@ def get_ytd_return(ticker,key) :
 
 ''' main '''
 
-api_key = get_user_specific_api_key() 
+api_key = get_user_specific_api_key()
+
+if api_key == "None": 
+    print("Could not get api key. Required file 'tdinfo.json not found")
+    exit() 
 
 symbol_list = make_symbols_list() 
+if not(symbol_list):
+    print("Could not get positions. Required file 'positions.json' not found.") 
+    exit()
 
 print "Getting quotes..."
 print 
