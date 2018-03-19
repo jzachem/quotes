@@ -2,9 +2,23 @@
 
 import os
 import requests
-import json 
+import json
+import redis
 
 
+def connect_to_redis():
+
+    global r 
+
+    r = redis.Redis(host='localhost')
+
+
+
+def put_position_in_cache(position_key, position_dict): 
+    
+    r.hmset(position_key, position_dict)
+
+    
 # get the api key from the the required tdinfo.json file. 
 def get_user_specific_api_key():
 
@@ -35,12 +49,19 @@ def make_symbols_list():
         with open(positions_file,'r') as p:
             
             positions = json.load(p)
+
+            # Cache the positions dictionary to Redis
+            # TBD
+             
             
             for item in positions: 
       
                 symbol_list.append(positions[item]["symbol"])     
          
-        
+                if use_redis_cache: 
+
+                    put_position_in_cache(item,positions[item])
+
     return(symbol_list)   
 
 
@@ -61,7 +82,8 @@ def get_end_of_year_price(symbol, encoded_apikey ):
     eoy_quote_data = reply.json() 
  
     if eoy_quote_data["empty"] == False: 
-        
+
+        # should only have one candle now that period only covers Dec 29, 2017
         for candle in eoy_quote_data["candles"]:
                        
             eoy_price = candle["close"]
@@ -103,13 +125,15 @@ def calc_YTD_return(current, prev_year):
     return decimal
 
 
-def get_ytd_return(ticker,key) :
+def get_ytd_return(ticker,apikey) :
     
-    current_price_float = get_price(ticker, key)
+    global r # The Redis connection established earlier
+
+    current_price_float = get_price(ticker, apikey)
     
     current_price_round = round(current_price_float,2)
     
-    prev_year_closing_price_float = get_end_of_year_price(ticker, key)
+    prev_year_closing_price_float = get_end_of_year_price(ticker, apikey)
     
     prev_year_closing_price_round =  round(prev_year_closing_price_float,2)
     
@@ -120,28 +144,50 @@ def get_ytd_return(ticker,key) :
     YTD_percent = float(YTD_return_float * 100)
   
     YTD_return = round(YTD_percent, 2)
-  
+    
+    if use_redis_cache: 
+        
+        r.hmset(ticker, {"ytd_return": YTD_return}) # add the return to the position data cache (Redis)
+
     # print "The current price of %s is: %s  EOY price was: %s  Change for the year is %s  YTD return is %s"  % (ticker, current_price_round, prev_year_closing_price_round, YTD_price_change, YTD_return)
     print "%s  %7.2f" % (ticker.ljust(5), YTD_return) 
-    
+     
+
 
 ''' main '''
 
 api_key = get_user_specific_api_key()
 
 if api_key == "None": 
+
     print("Could not get api key. Required file 'tdinfo.json not found")
+
     exit() 
 
+use_redis_cache = False # Redis much be installed and operational if this is set to True.  
+
+if use_redis_cache: 
+
+    connect_to_redis()
+
 symbol_list = make_symbols_list() 
+
 if not(symbol_list):
+    
     print("Could not get positions. Required file 'positions.json' not found.") 
+    
     exit()
 
+
 print "Getting quotes..."
+
 print 
+
 print "Symbol  YTD Return"
 
 for item in symbol_list: 
+
     get_ytd_return(item, api_key)
   
+
+
