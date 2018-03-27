@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head> 
+    <title>YTD Return Calc</title>
+    <link rel="stylesheet" href="style.css" />    
+</head>
+<body> 
+
+<div class="header">
+    <h1>Year To Date Return Calculator</h1>
+    <p>by Jeff Zachem</p>
+    <input type="text" name="ticker" id="ticker_editbox">     
+    <button type="button" id="calcYTDRet" onclick="get_symbols()">Calculate</button>
+    <br><br><br>     
+    <button type="button" id="shutflask" onclick="shutFlask()">Shutdown Flask Server</button>
+</div>
+
+<div id="outputarea" class="container">
+    <p>Symbol &nbsp;&nbsp;&nbsp; YTD Return</p>
+</div>
+<script> 
+    var input = document.getElementById("ticker_editbox"); 
+    input.addEventListener("keyup", function(event){
+        // event.preventDefault(); 
+        if( event.keyCode === 13) {
+          document.getElementById("calcYTDRet").click(); 
+        }
+    });
+</script>
+
+<script>
+    function get_symbols(){
+        var ticker_symbol_list_string = document.getElementById("ticker_editbox").value.toUpperCase(); 
+        var ticker_symbol_list_array = ticker_symbol_list_string.split(" ");
+        for (var i = 0; i < ticker_symbol_list_array.length; i++){
+            // document.getElementById("outputarea").innerHTML += ticker_symbol_list_array[i];
+            calcYTDRet(ticker_symbol_list_array[i]);    
+        }
+        
+
+    }
+</script>
+
+<script>
+    function calcYTDRet(ticker_symbol){
+        // var ticker_symbol = document.getElementById("ticker_editbox").value.toUpperCase(); 
+        if (ticker_symbol != "") {
+            var url = "http://localhost:5000/symbol/" + ticker_symbol;
+            var xhr1 = new XMLHttpRequest();
+    
+            xhr1.open("GET", url, async = false ); 
+            xhr1.send();     
+            document.getElementById("outputarea").innerHTML += ticker_symbol + "&nbsp; &nbsp; &nbsp; &nbsp;" + xhr1.response + "%" + "<br>";
+            // var json = JSON.parse(xhr1.response);
+        }
+        else {
+            alert("Please enter a valid ticker symbol");
+        }
+    }
+</script>
+<script>
+    // For development only 
+   function shutFlask(){ 
+        document.getElementById("outputarea").innerHTML += "Shutting Down Quotes Server" + "<br>";
+        var xhr3 = new XMLHttpRequest();
+        Xhr3.open("GET", "http://localhost:5000/shutdown", async = false ); 
+        xhr3.send();        
+    }
+</script>
+</body>
+</html>
