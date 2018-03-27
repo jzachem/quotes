@@ -5,6 +5,52 @@ import requests
 import json
 import redis
 
+from flask import Flask 
+from flask import request
+
+app = Flask(__name__, static_url_path = "")
+
+@app.route('/hello')
+def entry_point():
+    return 'Hello World!'
+
+@app.route('/')
+def serve_main_page():
+    return app.send_static_file('index.html')
+
+# For development only 
+@app.route('/shutdown')
+def shutdown():
+    print "Shutting down"
+    shutdown_server()
+    return 'Server shutting down...'
+
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+
+@app.route('/symbol/')
+def handle_ytd_return_request():
+    # api_key = get_user_specific_api_key()
+    # if api_key == "None": 
+        # print("Could not get api key. Required file 'tdinfo.json not found")
+        # exit() 
+    # YTD_return = get_ytd_return("AMZN", api_key)    
+    # print YTD_return 
+    return "Missing Symbol" 
+
+@app.route('/symbol/<symbol>')
+def handle_ytd_return_request_symbol(symbol):
+    api_key = get_user_specific_api_key()
+    if api_key == "None": 
+        print("Could not get api key. Required file 'tdinfo.json not found")
+        exit()    
+    YTD_return = get_ytd_return(symbol.upper(), api_key)    
+    # print symbol
+    # print YTD_return 
+    return str(YTD_return) 
 
 def connect_to_redis():
     global r 
@@ -48,27 +94,45 @@ def get_end_of_year_price(symbol, encoded_apikey ):
 
     url = "https://api.tdameritrade.com/v1/marketdata/{}/pricehistory?apikey={}&periodType=month&period=1&frequencyType=daily&frequency=1&endDate=%201514880000000&startDate=1514534400000".format(symbol, encoded_apikey)    
     reply = requests.get(url)
+    if reply.status_code != 200: 
+        print "TD API failure. Error code {}. Error Message {}".format(reply.status_code, reply.text)
+        exit()
     eoy_quote_data = reply.json() 
+    # print eoy_quote_data
     
     if eoy_quote_data["empty"] == False: 
         # should only have one candle now that period only covers Dec 29, 2017
-        for candle in eoy_quote_data["candles"]:                   
-            eoy_price = candle["close"]            
-            return(eoy_price)        
-        print(" Cound not find end of day closing price timedate")
+        # commenting out previous loop. Leaving for reference for now.
+        # for candle in eoy_quote_data["candles"]:                   
+            #eoy_price = candle["close"]            
+            #return(eoy_price)
+        eoy_price = eoy_quote_data["candles"][0]["close"]
+        # print eoy_price                 
     else: 
-        print ("No candles returned")        
-        eoy_price = 1.00
-    
+        print ("No candles returned. YTD return for this position will not be accurate.")        
+        eoy_price = 1.00    
     return (eoy_price) 
 
 def get_price(symbol,encoded_apikey):        
     quote_data = {} 
-
+    current_price = 100.00
+    
     url = "https://api.tdameritrade.com/v1/marketdata/{}/quotes?apikey={}".format(symbol, encoded_apikey)
-    reply = requests.get(url)    
-    quote_data = reply.json()    
-    current_price = quote_data[item]["lastPrice"]
+    # print url 
+    reply = requests.get(url) 
+    # print reply
+    # print reply.status_code    
+    # print reply.text 
+    if reply.status_code != 200: 
+        print "TD API failure. Error code {}. Error Message {}".format(reply.status_code, reply.text)
+        exit()
+    if reply.text == "": 
+        # print "TD API issue"
+        exit() 
+
+    quote_data = reply.json() 
+    # print quote_data   
+    current_price = quote_data[symbol]["lastPrice"]    
     
     return (current_price)
  
@@ -99,6 +163,8 @@ def get_ytd_return(ticker,apikey) :
 
     # print "The current price of %s is: %s  EOY price was: %s  Change for the year is %s  YTD return is %s"  % (ticker, current_price_round, prev_year_closing_price_round, YTD_price_change, YTD_return)
     print "%s  %7.2f" % (ticker.ljust(5), YTD_return) 
+
+    return YTD_return
      
 ''' main '''
 api_key = get_user_specific_api_key()
@@ -115,8 +181,13 @@ if not(symbol_list):
     print("Could not get positions. Required file 'positions.json' not found.")     
     exit()
 
-print "Getting quotes..."
-print 
-print "Symbol  YTD Return"
-for item in symbol_list: 
+# print "Getting quotes..."
+# print 
+# print "Symbol  YTD Return"
+'''for item in symbol_list: 
     get_ytd_return(item, api_key)
+'''    
+# get_ytd_return("AMZN", api_key)
+
+if __name__ == "__main__":
+    app.run(debug = True)
