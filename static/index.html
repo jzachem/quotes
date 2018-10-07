@@ -63,7 +63,7 @@
    function shutFlask(){ 
         document.getElementById("outputarea").innerHTML += "Shutting Down Quotes Server" + "<br>";
         var xhr3 = new XMLHttpRequest();
-        Xhr3.open("GET", "http://localhost:5000/shutdown", async = false ); 
+        xhr3.open("GET", "http://localhost:5000/shutdown", async = false ); 
         xhr3.send();        
     }
 </script>
