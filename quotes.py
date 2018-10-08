@@ -7,6 +7,7 @@ import redis
 
 from flask import Flask 
 from flask import request
+from flask import jsonify
 
 app = Flask(__name__, static_url_path = "")
 
@@ -23,13 +24,15 @@ def serve_main_page():
 def shutdown():
     print "Shutting down"
     shutdown_server()
-    return 'Server shutting down...'
+    return "Shut down"
 
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
+    print "Server shut down."
+    return
 
 @app.route('/symbol/')
 def handle_ytd_return_request():
@@ -51,6 +54,28 @@ def handle_ytd_return_request_symbol(symbol):
     # print symbol
     # print YTD_return 
     return str(YTD_return) 
+
+@app.route('/positions')
+def return_postions_as_json():
+    positions_dict = make_positions_json()
+    json_response = jsonify(positions_dict)
+    return json_response
+
+# get the position information from positions file, load a json object and return the object 
+def make_positions_json(): 
+    # symbol_list = []
+    positions_file = "positions.json"
+
+    if os.path.isfile(positions_file):         
+        with open(positions_file,'r') as p:            
+            positions = json.load(p)       
+            # print positions       
+            # for item in positions:       
+                # symbol_list.append(positions[item]["symbol"])              
+                # if use_redis_cache: 
+                    #put_position_in_cache(item,positions[item])
+
+    return (positions)   
 
 def connect_to_redis():
     global r 
@@ -85,6 +110,8 @@ def make_symbols_list():
                     put_position_in_cache(item,positions[item])
 
     return(symbol_list)   
+
+
 
 def get_end_of_year_price(symbol, encoded_apikey ):
     # startDate is milliseconds from epoch time (Jan 1, 1970). Value is 9:30 am EST Dec 29, 2017 - Last trading day of the year

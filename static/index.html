@@ -10,8 +10,10 @@
     <h1>Year To Date Return Calculator</h1>
     <p>by Jeff Zachem</p>
     <input type="text" name="ticker" id="ticker_editbox">     
-    <button type="button" id="calcYTDRet" onclick="get_symbols()">Calculate</button>
-    <br><br><br>     
+    <button type="button" id="calcYTDRet" onclick="get_symbols()">Calculate Entered Symbols</button>
+    <br><br>     
+    <button type="button" id="calcYTDRetAll" onclick="get_symbols_all()">Calculate All</button>
+    <br><br>     
     <button type="button" id="shutflask" onclick="shutFlask()">Shutdown Flask Server</button>
 </div>
 
@@ -36,7 +38,43 @@
             // document.getElementById("outputarea").innerHTML += ticker_symbol_list_array[i];
             calcYTDRet(ticker_symbol_list_array[i]);    
         }
+    }
+</script>
+
+<script>
+    function get_symbols_all(){
+        // symbols don't come from edit box, need to ask web server for the list of positions
+     
+        // document.getElementById("outputarea").innerHTML += "Requesting position list from server" + "<br>";
+        var xhr2 = new XMLHttpRequest();
+        xhr2.open("GET", "http://localhost:5000/positions", async = false ); 
+        xhr2.send();   
+        // document.getElementById("outputarea").innerHTML += xhr2.response + "<br>"; // For debug 
         
+        var json = JSON.parse(xhr2.response);   
+
+        for (sym in json ){
+            // document.getElementById("outputarea").innerHTML += json[sym].symbol + "<br>";  // For debug
+            var theSymbol = json[sym].symbol; 
+            // document.getElementById("outputarea").innerHTML += theSymbol + "<br>"; // For debug                   
+            calcYTDRet(theSymbol);  
+        }
+    }
+</script>
+
+<script>
+    function test_function(){
+
+        var obj = {"stock1": {"symbol": "INTC", "count": "30", "name": "Intel"}, "stock2": {"symbol": "AMZN","count": "50", "name": "Amazon"}};
+        document.getElementById("outputarea").innerHTML += obj  + "<br>";
+        document.getElementById("outputarea").innerHTML += obj.stock1  + "<br>";
+        document.getElementById("outputarea").innerHTML += obj.stock1.symbol  + "<br>";
+        document.getElementById("outputarea").innerHTML += obj.stock2.symbol  + "<br>";
+        for (x in obj){ 
+            document.getElementById("outputarea").innerHTML += x  + "<br>"; // "stock1"
+            // document.getElementById("outputarea").innerHTML += x.symbol  + "<br>"; // undefined 
+            document.getElementById("outputarea").innerHTML += obj[x].symbol  + "<br>"; // bad 
+        }
 
     }
 </script>
@@ -58,6 +96,7 @@
         }
     }
 </script>
+
 <script>
     // For development only 
    function shutFlask(){ 
