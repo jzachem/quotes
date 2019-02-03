@@ -114,12 +114,20 @@ def make_symbols_list():
 
 
 def get_end_of_year_price(symbol, encoded_apikey ):
-    # startDate is milliseconds from epoch time (Jan 1, 1970). Value is 9:30 am EST Dec 29, 2017 - Last trading day of the year
-    # endDate is milliseconds from epoch time (Jan 1, 1970). Value is 4:00 pm EST Dec 29, 2017 - Last trading day of the year
+    # startDate is milliseconds from epoch time (Jan 1, 1970). Value is 3:00 am EST Dec 29, 2017 -  1514534400000
+    # endDate is milliseconds from epoch time (Jan 1, 1970). Value is 3:00 am EST Jan 2, 2017 -  1514880000000
+    
+
+      # startDate is milliseconds from epoch time (Jan 1, 1970). Value is 3:00 am EST Dec 29, 2018 -  1546070400000
+      # endDate is milliseconds from epoch time (Jan 1, 1970). Value is 3:00 am EST Jan 2, 2019 -  1546416000000
+    
     eoy_quote_data = {}      #end_of_year_quote dictionary    
     eoy_price = 1.00    
 
-    url = "https://api.tdameritrade.com/v1/marketdata/{}/pricehistory?apikey={}&periodType=month&period=1&frequencyType=daily&frequency=1&endDate=%201514880000000&startDate=1514534400000".format(symbol, encoded_apikey)    
+    # url = "https://api.tdameritrade.com/v1/marketdata/{}/pricehistory?apikey={}&periodType=month&period=1&frequencyType=daily&frequency=1&endDate=%201514880000000&startDate=1514534400000".format(symbol, encoded_apikey)    
+    url = "https://api.tdameritrade.com/v1/marketdata/{}/pricehistory?apikey={}&periodType=month&period=1&frequencyType=daily&frequency=1&endDate=%201546416000000&startDate=1546070400000".format(symbol, encoded_apikey)    
+   
+
     reply = requests.get(url)
     if reply.status_code != 200: 
         print "TD API failure. Error code {}. Error Message {}".format(reply.status_code, reply.text)
@@ -137,7 +145,8 @@ def get_end_of_year_price(symbol, encoded_apikey ):
         # print eoy_price                 
     else: 
         print ("No candles returned. YTD return for this position will not be accurate.")        
-        eoy_price = 1.00    
+        eoy_price = 1.00   
+    print eoy_price 
     return (eoy_price) 
 
 def get_price(symbol,encoded_apikey):        
@@ -160,7 +169,7 @@ def get_price(symbol,encoded_apikey):
     quote_data = reply.json() 
     # print quote_data   
     current_price = quote_data[symbol]["lastPrice"]    
-    
+    print current_price
     return (current_price)
  
 def calc_YTD_return(current, prev_year):    
@@ -217,4 +226,4 @@ if not(symbol_list):
 # get_ytd_return("AMZN", api_key)
 
 if __name__ == "__main__":
-    app.run(debug = True)
+    app.run(debug = True, port = 5005)

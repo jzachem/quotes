@@ -47,7 +47,7 @@
      
         // document.getElementById("outputarea").innerHTML += "Requesting position list from server" + "<br>";
         var xhr2 = new XMLHttpRequest();
-        xhr2.open("GET", "http://localhost:5000/positions", async = false ); 
+        xhr2.open("GET", "http://localhost:5005/positions", async = false ); 
         xhr2.send();   
         // document.getElementById("outputarea").innerHTML += xhr2.response + "<br>"; // For debug 
         
@@ -83,7 +83,7 @@
     function calcYTDRet(ticker_symbol){
         // var ticker_symbol = document.getElementById("ticker_editbox").value.toUpperCase(); 
         if (ticker_symbol != "") {
-            var url = "http://localhost:5000/symbol/" + ticker_symbol;
+            var url = "http://localhost:5005/symbol/" + ticker_symbol;
             var xhr1 = new XMLHttpRequest();
     
             xhr1.open("GET", url, async = false ); 
@@ -102,7 +102,7 @@
    function shutFlask(){ 
         document.getElementById("outputarea").innerHTML += "Shutting Down Quotes Server" + "<br>";
         var xhr3 = new XMLHttpRequest();
-        xhr3.open("GET", "http://localhost:5000/shutdown", async = false ); 
+        xhr3.open("GET", "http://localhost:5005/shutdown", async = false ); 
         xhr3.send();        
     }
 </script>
